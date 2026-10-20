@@ -24,7 +24,7 @@ function App() {
       setError("");
 
       // Carga el archivo ubicado en public/Escalados_funcional_12-10.xlsx
-      const respuesta = await fetch("/Escalados_funcional_12-10.xlsx");
+      const respuesta = await fetch("/Escalados_funcional_12-10");
       
       if (!respuesta.ok) {
         throw new Error("No se pudo encontrar el archivo Excel en la carpeta public.");
