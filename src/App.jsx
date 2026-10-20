@@ -1,5 +1,5 @@
 import { useState } from "react";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 function App() {
   const [tablaTipificaciones, setTablaTipificaciones] = useState([]);
