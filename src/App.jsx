@@ -62,7 +62,6 @@ function App() {
     let sumaTotalEst = 0;
 
     datos.forEach((fila) => {
-      // 1. SD - Tipificaciones
       const valTip = fila["SD - Tipificaciones"];
       const tipificacion = (valTip !== undefined && valTip !== null && valTip.toString().trim() !== "")
         ? valTip.toString().trim()
@@ -71,7 +70,6 @@ function App() {
       conteoTipificaciones[tipificacion] = (conteoTipificaciones[tipificacion] || 0) + 1;
       sumaTotalTip += 1;
 
-      // 2. SD - Calidad - Calificación (Mapeado a "Motivos de escalado")
       const valCal = fila["SD - Calidad - Calificación"];
       const calificacion = (valCal !== undefined && valCal !== null && valCal.toString().trim() !== "")
         ? valCal.toString().trim()
@@ -80,7 +78,6 @@ function App() {
       conteoCalificacion[calificacion] = (conteoCalificacion[calificacion] || 0) + 1;
       sumaTotalCal += 1;
 
-      // 3. Estructura Jerárquica para Tabla Dinámica por Estado
       const valEstado = fila["Estado"];
       const estado = (valEstado !== undefined && valEstado !== null && valEstado.toString().trim() !== "")
         ? valEstado.toString().trim()
@@ -99,7 +96,6 @@ function App() {
       sumaTotalEst += 1;
     });
 
-    // Formatear Tabla 1
     const formatoTablaTip = Object.entries(conteoTipificaciones)
       .map(([categoria, cantidad]) => ({
         categoria,
@@ -108,7 +104,6 @@ function App() {
       }))
       .sort((a, b) => b.cantidad - a.cantidad);
 
-    // Formatear Tabla 2
     const formatoTablaCal = Object.entries(conteoCalificacion)
       .map(([categoria, cantidad]) => ({
         categoria,
@@ -117,7 +112,6 @@ function App() {
       }))
       .sort((a, b) => b.cantidad - a.cantidad);
 
-    // Formatear Tabla 3 (Estructura Dinámica de Excel)
     const estructuraGrupos = Object.values(mapaEstados)
       .map((itemEstado) => {
         const listaMotivos = Object.entries(itemEstado.motivosMap)
@@ -385,9 +379,9 @@ function App() {
             </table>
           </div>
 
-          {/* TABLA 3: Resumen por Estado (Tabla Dinámica estilo Excel) */}
+          {/* TABLA 3: Resumen por Estado */}
           <div style={estilos.tarjeta}>
-            <h2 style={estilos.tituloTabla}>3. Resumen por Estado </h2>
+            <h2 style={estilos.tituloTabla}>3. Resumen por Estado</h2>
             <table style={estilos.tablaPivot}>
               <thead>
                 <tr>
@@ -399,31 +393,36 @@ function App() {
               </thead>
               <tbody>
                 {gruposEstado.map((grupo, gIndex) => (
-                  <>
-                    {grupo.motivos.map((mItem, mIndex) => (
-                      <tr key={`${gIndex}-${mIndex}`}>
-                        <td style={estilos.tdPivot}>
-                          {mIndex === 0 && (
-                            <span style={{ fontWeight: "600" }}>
-                              <span style={estilos.iconoContraer}>-</span>
-                              {grupo.estado}
-                            </span>
-                          )}
-                        </td>
-                        <td style={estilos.tdPivot}>{mItem.motivo}</td>
-                        <td style={{ ...estilos.tdPivot, textAlign: "right" }}>{mItem.cantidad}</td>
-                        <td style={{ ...estilos.tdPivot, textAlign: "right" }}>{mItem.porcentaje}</td>
-                      </tr>
-                    ))}
-
-                    <tr key={`subtotal-${gIndex}`} style={estilos.rowSubtotal}>
-                      <td style={estilos.tdPivot} colSpan={2}>
-                        Total {grupo.estado}
-                      </td>
-                      <td style={{ ...estilos.tdPivot, textAlign: "right" }}>{grupo.totalEstado}</td>
-                      <td style={{ ...estilos.tdPivot, textAlign: "right" }}>{grupo.porcentajeEstado}</td>
-                    </tr>
-                  </>
+                  <tr key={`group-${gIndex}`}>
+                    <td colSpan={4} style={{ padding: 0, border: 0 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <tbody>
+                          {grupo.motivos.map((mItem, mIndex) => (
+                            <tr key={`${gIndex}-${mIndex}`}>
+                              <td style={{ ...estilos.tdPivot, width: "250px" }}>
+                                {mIndex === 0 && (
+                                  <span style={{ fontWeight: "600" }}>
+                                    <span style={estilos.iconoContraer}>-</span>
+                                    {grupo.estado}
+                                  </span>
+                                )}
+                              </td>
+                              <td style={estilos.tdPivot}>{mItem.motivo}</td>
+                              <td style={{ ...estilos.tdPivot, textAlign: "right", width: "140px" }}>{mItem.cantidad}</td>
+                              <td style={{ ...estilos.tdPivot, textAlign: "right", width: "120px" }}>{mItem.porcentaje}</td>
+                            </tr>
+                          ))}
+                          <tr style={estilos.rowSubtotal}>
+                            <td style={estilos.tdPivot} colSpan={2}>
+                              Total {grupo.estado}
+                            </td>
+                            <td style={{ ...estilos.tdPivot, textAlign: "right", width: "140px" }}>{grupo.totalEstado}</td>
+                            <td style={{ ...estilos.tdPivot, textAlign: "right", width: "120px" }}>{grupo.porcentajeEstado}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
               <tfoot>
@@ -431,10 +430,10 @@ function App() {
                   <td style={{ ...estilos.tdPivot, borderTop: "2px solid #0f172a" }} colSpan={2}>
                     Suma total
                   </td>
-                  <td style={{ ...estilos.tdPivot, textAlign: "right", borderTop: "2px solid #0f172a" }}>
+                  <td style={{ ...estilos.tdPivot, textAlign: "right", borderTop: "2px solid #0f172a", width: "140px" }}>
                     {totalGeneralEstado}
                   </td>
-                  <td style={{ ...estilos.tdPivot, textAlign: "right", borderTop: "2px solid #0f172a" }}>
+                  <td style={{ ...estilos.tdPivot, textAlign: "right", borderTop: "2px solid #0f172a", width: "120px" }}>
                     100.00%
                   </td>
                 </tr>
