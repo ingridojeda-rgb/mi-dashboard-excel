@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 function App() {
@@ -10,46 +10,46 @@ function App() {
   const [totalCalificacion, setTotalCalificacion] = useState(0);
   const [totalGeneralEstado, setTotalGeneralEstado] = useState(0);
 
-  const [cargando, setCargando] = useState(false);
-  const [nombreArchivo, setNombreArchivo] = useState("");
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  const manejarSubidaArchivo = (e) => {
-    const archivo = e.target.files[0];
-    if (!archivo) return;
+  // Cargar automáticamente el archivo al iniciar la aplicación
+  useEffect(() => {
+    cargarArchivoAutomatico();
+  }, []);
 
-    setNombreArchivo(archivo.name);
-    setCargando(true);
-    setError("");
+  const cargarArchivoAutomatico = async () => {
+    try {
+      setCargando(true);
+      setError("");
 
-    const lector = new FileReader();
-
-    lector.onload = (evento) => {
-      try {
-        const buffer = evento.target.result;
-        const libro = XLSX.read(buffer, { type: "array" });
-
-        const nombreHoja = libro.SheetNames[0];
-        const hoja = libro.Sheets[nombreHoja];
-
-        const datosJson = XLSX.utils.sheet_to_json(hoja, { defval: "" });
-
-        if (datosJson.length === 0) {
-          setError("El archivo Excel no contiene filas de datos.");
-          setCargando(false);
-          return;
-        }
-
-        procesarMetricas(datosJson);
-      } catch (err) {
-        console.error(err);
-        setError("Error al leer el archivo Excel. Asegúrate de que sea un archivo .xlsx o .xls válido.");
-      } finally {
-        setCargando(false);
+      // Carga el archivo ubicado en public/Escalados_funcional_12-10.xlsx
+      const respuesta = await fetch("/Escalados_funcional_12-10.xlsx");
+      
+      if (!respuesta.ok) {
+        throw new Error("No se pudo encontrar el archivo Excel en la carpeta public.");
       }
-    };
 
-    lector.readAsArrayBuffer(archivo);
+      const buffer = await respuesta.arrayBuffer();
+      const libro = XLSX.read(buffer, { type: "array" });
+
+      const nombreHoja = libro.SheetNames[0];
+      const hoja = libro.Sheets[nombreHoja];
+
+      const datosJson = XLSX.utils.sheet_to_json(hoja, { defval: "" });
+
+      if (datosJson.length === 0) {
+        setError("El archivo Excel no contiene filas de datos.");
+        return;
+      }
+
+      procesarMetricas(datosJson);
+    } catch (err) {
+      console.error(err);
+      setError("Error al cargar la base de datos automáticamente. Revisa que el archivo exista en public/Escalados_funcional_12-10.xlsx");
+    } finally {
+      setCargando(false);
+    }
   };
 
   const procesarMetricas = (datos) => {
@@ -162,20 +162,6 @@ function App() {
       color: "#64748b",
       fontSize: "15px"
     },
-    zonaCarga: {
-      background: "#ffffff",
-      border: "2px dashed #94a3b8",
-      borderRadius: "12px",
-      padding: "30px",
-      textAlign: "center",
-      maxWidth: "700px",
-      margin: "0 auto 40px auto",
-      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)"
-    },
-    inputArchivo: {
-      marginTop: "15px",
-      padding: "8px"
-    },
     seccionVertical: {
       display: "flex",
       flexDirection: "column",
@@ -269,12 +255,6 @@ function App() {
       textAlign: "center",
       fontSize: "12px",
       marginRight: "8px"
-    },
-    mensajeVacio: {
-      textAlign: "center",
-      color: "#94a3b8",
-      marginTop: "50px",
-      fontSize: "16px"
     }
   };
 
@@ -282,34 +262,22 @@ function App() {
     <div style={estilos.contenedor}>
       <header style={estilos.header}>
         <h1 style={estilos.titulo}>📊 Escalados a funcional</h1>
-        <p style={estilos.subtitulo}>Carga tu base de datos en Excel para generar las métricas automáticamente</p>
+        <p style={estilos.subtitulo}>Métricas generadas a partir de la base de datos oficial</p>
       </header>
-
-      <div style={estilos.zonaCarga}>
-        <label style={{ fontWeight: "bold", display: "block" }}>
-          📁 Selecciona o arrastra tu archivo Excel:
-        </label>
-        <input
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={manejarSubidaArchivo}
-          style={estilos.inputArchivo}
-        />
-        {nombreArchivo && (
-          <p style={{ color: "#2563eb", fontWeight: "bold", marginTop: "10px" }}>
-            Archivo cargado: {nombreArchivo}
-          </p>
-        )}
-        {error && <p style={{ color: "#dc2626", marginTop: "10px" }}>{error}</p>}
-      </div>
 
       {cargando && (
         <p style={{ textAlign: "center", fontSize: "18px", color: "#1e3a8a" }}>
-          Procesando datos del Excel...
+          Cargando métricas del dashboard...
         </p>
       )}
 
-      {tablaTipificaciones.length > 0 && (
+      {error && (
+        <p style={{ textAlign: "center", color: "#dc2626", fontWeight: "bold" }}>
+          {error}
+        </p>
+      )}
+
+      {!cargando && tablaTipificaciones.length > 0 && (
         <div style={estilos.seccionVertical}>
           {/* TABLA 1: SD - Tipificaciones */}
           <div style={estilos.tarjeta}>
@@ -440,12 +408,6 @@ function App() {
               </tfoot>
             </table>
           </div>
-        </div>
-      )}
-
-      {tablaTipificaciones.length === 0 && !cargando && (
-        <div style={estilos.mensajeVacio}>
-          Aún no se han cargado datos. Por favor, selecciona un archivo Excel arriba.
         </div>
       )}
     </div>
