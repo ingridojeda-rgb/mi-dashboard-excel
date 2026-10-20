@@ -13,7 +13,6 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  // Cargar automáticamente el archivo al iniciar la aplicación
   useEffect(() => {
     cargarArchivoAutomatico();
   }, []);
@@ -23,8 +22,8 @@ function App() {
       setCargando(true);
       setError("");
 
-      // Carga el archivo ubicado en public/Escalados_funcional_12-10.xlsx
-      const respuesta = await fetch("/Escalados_funcional_12-10");
+      // Intenta cargar el archivo con su extensión correcta
+      const respuesta = await fetch("/Escalados_funcional_12-10.xlsx");
       
       if (!respuesta.ok) {
         throw new Error("No se pudo encontrar el archivo Excel en la carpeta public.");
