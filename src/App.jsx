@@ -31,10 +31,8 @@ function App() {
 
       const buffer = await respuesta.arrayBuffer();
       const libro = XLSX.read(buffer, { type: "array" });
-
       const nombreHoja = libro.SheetNames[0];
       const hoja = libro.Sheets[nombreHoja];
-
       const datosJson = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
       if (datosJson.length === 0) {
@@ -43,11 +41,11 @@ function App() {
       }
 
       procesarMetricas(datosJson);
-    } catch (err) {
-      console.error(err);
-      setError("Error al cargar la base de datos automáticamente. Revisa que el archivo exista en public/Escalados_funcional_12-10.xlsx");
-    } finally {
-      setCargando(false);
+  } catch (err) {
+    console.error(err);
+    setError("Error al cargar la base de datos automáticamente.");
+  } finally {
+    setCargando(false);
     }
   };
 
